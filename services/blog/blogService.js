@@ -104,7 +104,6 @@ const getBlogs = async (query_blog_title, page, page_size) => {
   const blogs = await Blog.find(obj)
     .populate("author", {
       name: 1,
-      username: 1,
       user_image: 1,
     })
     .sort({ createdAt: -1 })

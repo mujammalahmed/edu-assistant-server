@@ -5,7 +5,7 @@ const userSchema = new Schema({
     type: String,
     required: false,
   },
-  username: {
+  role: {
     type: String,
     required: false,
     unique: true,
@@ -54,7 +54,6 @@ const userSchema = new Schema({
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
-userSchema.index({ username: 1 }, { unique: true });
 userSchema.index({ email: 1 }, { unique: true });
 
 module.exports = model("User", userSchema);

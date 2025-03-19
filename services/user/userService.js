@@ -7,7 +7,7 @@ const getUsers = async () => {
     {
       $project: {
         name: 1,
-        username: 1,
+        role: 1,
         email: 1,
         user_image: 1,
         linkedin: 1,
@@ -56,7 +56,7 @@ const getTopContributors = async () => {
     {
       $project: {
         name: 1,
-        username: 1,
+        role: 1,
         email: 1,
         user_image: 1,
         linkedin: 1,
@@ -89,7 +89,7 @@ const gteLoggedinUserBlogs = async (user_id, page, page_size) => {
   const blogs = await Blog.find({ author: user_id })
     .populate("author", {
       name: 1,
-      username: 1,
+      role: 1,
       user_image: 1,
     })
     .sort({ createdAt: -1 })

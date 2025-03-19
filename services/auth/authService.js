@@ -8,9 +8,9 @@ const config = require("../../config/index.js");
 const mailService = require("../../helpers/mailer/mailer");
 
 const signup = async (userBody) => {
-  const { username, email, password } = userBody;
+  const { role, email, password } = userBody;
 
-  if (username && email && password) {
+  if (role && email && password) {
     //haspassword
 
     let hashedPassword;
@@ -29,7 +29,7 @@ const signup = async (userBody) => {
     let exists = await userService.isUserAlreadyExists(email);
     if (exists) {
       return {
-        message: `User already exists with the email address${email}`,
+        message: `User already exists with the email address ${email}`,
         statusCode: 401,
       };
     } else {
@@ -38,13 +38,13 @@ const signup = async (userBody) => {
 
       try {
         createdUserId = await userService.createNewUser(
-          username,
+          role,
           email,
           hashedPassword
         );
       } catch (error) {
         return {
-          message: "User creation failed",
+          message: "User ID creation failed, Please Try Again",
           statusCode: 500,
         };
       }
@@ -60,7 +60,7 @@ const signup = async (userBody) => {
 
         try {
           const subject = "Registration Successful";
-          const body = `<p>Hi ${username}</p>
+          const body = `<p>Hi ${role}</p>
                                   <br>Welcome abord! Your user creation our application is successful<br>
                                   <a href="http://localhost:5173/${token}">Verify Email</a><br>
                                   <br>Cheers<br>`;

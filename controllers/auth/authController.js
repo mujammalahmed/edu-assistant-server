@@ -1,10 +1,10 @@
 const autheService = require("../../services/auth/authService");
 
 const signup = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { role, email, password } = req.body;
 
   user_body = {
-    username,
+    role,
     email,
     password,
   };

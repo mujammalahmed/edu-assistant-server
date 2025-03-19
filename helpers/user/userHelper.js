@@ -5,15 +5,17 @@ const e = require("express");
 class userHelper {
   constructor() {}
 
-  async createNewUser(username, email, hashedPassword) {
+  async createNewUser(role, email, hashedPassword) {
     try {
       let user = new User({
-        username: username,
+        role: role,
         email: email,
         isAccountActive: false,
         isEmailVerified: false,
         password: hashedPassword,
       });
+
+      console.log(user, "createdUserId");
 
       let ack = await user.save();
       return ack && ack._id;
@@ -54,7 +56,7 @@ class userHelper {
       Roles: user.roles,
       loggedIn: true,
       PhoneNumber: user.phoneNumber,
-      UserName: user.userName,
+      Role: user.role,
     };
   }
 }
