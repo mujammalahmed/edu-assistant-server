@@ -2,7 +2,9 @@ const Quiz = require("../../models/quiz");
 const User = require("../../models/user");
 
 const getQuiz = async (id) => {
-  const quiz = await Quiz.findById(id).populate("author", "name");
+  const quiz = await Quiz.findById(id)
+    .populate("author", "name")
+    .select("-questions.correctAnswer");
 
   if (!quiz) {
     return {
@@ -61,7 +63,7 @@ const createQuiz = async (quiz_data) => {
   await quiz.save();
 
   const user = await User.findOneAndUpdate(
-    { _id: authorId },
+    { _id: quiz_data.author_name },
     { $push: { quizzes: quiz._id } },
     { new: true }
   );
@@ -81,7 +83,6 @@ const createQuiz = async (quiz_data) => {
 
 const submitQuiz = async (quizId, answers) => {
   const quiz = await Quiz.findById(quizId).select("questions");
-
 
   if (!quiz) {
     return { message: "Quiz not found", statusCode: 404 };

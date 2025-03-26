@@ -73,7 +73,7 @@ const signup = async (userBody) => {
         }
 
         return {
-          message: "Use created successfully, Please verify your email",
+          message: "Use created successfully",
           statusCode: 200,
         };
       } else {
