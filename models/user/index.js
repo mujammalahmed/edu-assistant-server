@@ -7,8 +7,7 @@ const userSchema = new Schema({
   },
   role: {
     type: String,
-    required: false,
-    unique: true,
+    required: true,
   },
   email: {
     type: String,
@@ -50,6 +49,7 @@ const userSchema = new Schema({
   isAccountActive: { type: Boolean, default: false },
   isEmailVerified: { type: Boolean, default: false },
   blogs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Blog" }],
+  quizzes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Quiz" }],
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
