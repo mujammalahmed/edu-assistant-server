@@ -9,7 +9,7 @@ const getBlog = async (fetchedBy, value) => {
     { [fetchedBy]: value },
     { $inc: { total_views: 1 } }
   )
-    .populate("author", { name: 1, user_image: 1 })
+    .populate("author", { email: 1, user_image: 1 })
     .populate({
       path: "comments",
       populate: {
@@ -103,7 +103,7 @@ const getBlogs = async (query_blog_title, page, page_size) => {
 
   const blogs = await Blog.find(obj)
     .populate("author", {
-      name: 1,
+      email: 1,
       user_image: 1,
     })
     .sort({ createdAt: -1 })
@@ -177,7 +177,7 @@ const trendingBlogs = async () => {
   const trending_blogs = await Blog.find()
     .sort({ total_views: -1 })
     .limit(5)
-    .populate("author", "_id username name user_image");
+    .populate("author", "_id email name user_image");
 
   return {
     message: "Successfully trending Fetched",
@@ -223,7 +223,7 @@ const likeBlog = async (blog_id, user_id) => {
       path: "comments",
       populate: {
         path: "commenter",
-        select: "name user_image",
+        select: "email user_image",
       },
       options: {
         sort: { createdAt: -1 },
@@ -273,7 +273,7 @@ const unlikeBlog = async (blog_id, user_id) => {
       path: "comments",
       populate: {
         path: "commenter",
-        select: "name user_image",
+        select: "email user_image",
       },
       options: {
         sort: { createdAt: -1 },
@@ -318,7 +318,7 @@ const addComment = async (user_id, blog_id, comment_body) => {
       path: "comments",
       populate: {
         path: "commenter",
-        select: "name user_image",
+        select: "email user_image",
       },
       options: {
         sort: { createdAt: -1 },
