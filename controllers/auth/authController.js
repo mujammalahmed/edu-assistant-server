@@ -1,4 +1,5 @@
 const autheService = require("../../services/auth/authService");
+const { ApiError } = require("../../utils/apiError");
 
 const signup = async (req, res) => {
   const { role, email, password } = req.body;
@@ -41,7 +42,25 @@ const signin = async (req, res) => {
   });
 };
 
+const emailVerification = async (req, res) => {
+  const { email, code } = req.body;
+
+  if (!email || !code) {
+    throw new ApiError("Please provide email and code", 400);
+  }
+
+  const { message, statusCode } = await autheService.emailVerification(
+    email,
+    code
+  );
+
+  res.status(statusCode).json({
+    message,
+  });
+};
+
 module.exports = {
   signup,
   signin,
+  emailVerification,
 };

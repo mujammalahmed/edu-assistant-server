@@ -52,6 +52,8 @@ const userSchema = new Schema({
   quizzes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Quiz" }],
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  verificationCode: { type: String },
+  verificationCodeExpires: { type: Date },
 });
 
 userSchema.index({ email: 1 }, { unique: true });

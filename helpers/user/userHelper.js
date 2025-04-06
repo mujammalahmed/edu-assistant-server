@@ -13,6 +13,8 @@ class userHelper {
         isAccountActive: false,
         isEmailVerified: false,
         password: hashedPassword,
+        verificationCode: null,
+        verificationCodeExpires: null,
       });
 
       console.log(user, "createdUserId");

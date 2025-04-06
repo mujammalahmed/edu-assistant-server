@@ -6,13 +6,13 @@ const tokenHelper = require("../../helpers/user/token-service");
 const User = require("../../models/user");
 const config = require("../../config/index.js");
 const mailService = require("../../helpers/mailer/mailer");
+const bcrypt = require("bcrypt");
 
 const signup = async (userBody) => {
   const { role, email, password } = userBody;
 
   if (role && email && password) {
-    //haspassword
-
+    // Hash password
     let hashedPassword;
     try {
       hashedPassword = await utils.encryption.hashPassword(password);
@@ -24,64 +24,95 @@ const signup = async (userBody) => {
     }
 
     const userService = new userHelper();
-    //check if the user exists or not
 
+    // Check if the user exists
     let exists = await userService.isUserAlreadyExists(email);
     if (exists) {
       return {
         message: `User already exists with the email address ${email}`,
         statusCode: 401,
       };
-    } else {
-      //create the user
-      let createdUserId;
+    }
 
+    // Create user
+    let createdUserId;
+    try {
+      createdUserId = await userService.createNewUser(
+        role,
+        email,
+        hashedPassword
+      );
+    } catch (error) {
+      return {
+        message: "User ID creation failed, Please Try Again",
+        statusCode: 500,
+      };
+    }
+
+    // Check if user is created
+    if (createdUserId) {
+      // Generate verification token
+      const verificationService = new VerificationService();
+      const token = await verificationService.generateVerificationToken(
+        createdUserId
+      );
+
+      const verificationCode = Math.floor(
+        100000 + Math.random() * 900000
+      ).toString();
+
+      let hashedVerificationCode;
       try {
-        createdUserId = await userService.createNewUser(
-          role,
-          email,
-          hashedPassword
-        );
+        hashedVerificationCode = await bcrypt.hash(verificationCode, 10);
       } catch (error) {
         return {
-          message: "User ID creation failed, Please Try Again",
+          message: "Error hashing verification code",
           statusCode: 500,
         };
       }
 
-      //check whether the user is created or ot
-      if (createdUserId) {
-        //create token for the user
+      const expiryTime = new Date(Date.now() + 10 * 60 * 1000); // Code expires in 10 minutes
 
-        const verificationService = new VerificationService();
-        const token = await verificationService.generateVerificationToken(
-          createdUserId
+      try {
+        const subject = "Registration Successful";
+
+        // Email body with verification code
+        const body = `<p>Hi ${role},</p>
+                      <br>Welcome aboard! Your user creation in our application is successful.<br>
+                      <p>Your verification code is: <strong>${verificationCode}</strong></p>
+                      <p>This code is valid for 10 minutes.</p>
+                      <br>Cheers,<br>`;
+
+        // Send email
+        await mailService.sendMail(email, subject, body);
+
+        // Update user with verification code
+        await User.findOneAndUpdate(
+          { email },
+          {
+            verificationCode: hashedVerificationCode,
+            verificationCodeExpires: expiryTime,
+          },
+          { new: true }
         );
 
-        try {
-          const subject = "Registration Successful";
-          const body = `<p>Hi ${role}</p>
-                                  <br>Welcome abord! Your user creation our application is successful<br>
-                                  <a href="http://localhost:5173/${token}">Verify Email</a><br>
-                                  <br>Cheers<br>`;
-
-          await mailService.sendMail(email, subject, body);
-        } catch (e) {
-          response.message = "user creation failed, mail server issue";
-          response.Success = false;
-          await userService.deleteUserByEmail(email);
-        }
-
         return {
-          message: "Use created successfully",
+          message:
+            "User created successfully. Check your email for the verification code.",
           statusCode: 200,
         };
-      } else {
+      } catch (e) {
+        await userService.deleteUserByEmail(email);
         return {
-          message: "User creation failed",
-          statusCode: 400,
+          message: "User creation failed due to mail server issue",
+          statusCode: 500,
         };
       }
+    } else {
+      return {
+        message: "User creation failed",
+        statusCode: 400,
+      };
     }
   } else {
     return {
@@ -106,6 +137,12 @@ const signin = async (user) => {
   if (!existing_user) {
     return {
       message: "User not found",
+      statusCode: config.statusCodes.CLIENT_ERROR.UNAUTHORIZED,
+    };
+  }
+  if (!existing_user.isAccountActive || !existing_user.isEmailVerified) {
+    return {
+      message: "User not active, please verify",
       statusCode: config.statusCodes.CLIENT_ERROR.UNAUTHORIZED,
     };
   }
@@ -140,7 +177,62 @@ const signin = async (user) => {
   };
 };
 
+const emailVerification = async (email, code) => {
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return {
+        message: "User not found",
+        statusCode: 400,
+      };
+    }
+
+    if (!user.verificationCode || !user.verificationCodeExpires) {
+      return {
+        message: "No verification code found",
+        statusCode: 400,
+      };
+    }
+
+    // Check if verification code is expired
+    if (new Date() > user.verificationCodeExpires) {
+      return {
+        message: "Verification code expired",
+        statusCode: 400,
+      };
+    }
+
+    // Compare user input with the hashed verification code
+    const isMatch = await bcrypt.compare(code, user.verificationCode);
+    if (!isMatch) {
+      return {
+        message: "Invalid verification code",
+        statusCode: 400,
+      };
+    }
+
+    // Update user status
+    user.isEmailVerified = true;
+    user.isAccountActive = true;
+    user.verificationCode = undefined; // Clear verification code after successful verification
+    user.verificationCodeExpires = undefined;
+
+    await user.save();
+
+    return {
+      message: "Account verified successfully!",
+      statusCode: 200,
+    };
+  } catch (error) {
+    return {
+      message: "Server error, try again",
+      statusCode: 500,
+    };
+  }
+};
 module.exports = {
   signup,
   signin,
+  emailVerification,
 };

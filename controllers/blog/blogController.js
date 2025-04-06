@@ -9,10 +9,6 @@ const { ApiResponse } = require("../../utils/apiResponse");
 const getBlog = asyncHandler(async (req, res) => {
   const { slug } = req.params;
 
-  if (slug === "a") {
-    throw new ApiError("There so no blog like this update", 400);
-  }
-
   const fetchedBy = "blog_slug";
   const { message, blog, statusCode } = await blogService.getBlog(
     fetchedBy,
@@ -24,8 +20,6 @@ const getBlog = asyncHandler(async (req, res) => {
 
 const recommendationBlogs = asyncHandler(async (req, res) => {
   const { slug } = req.params;
-
-  console.log(slug, "asdasd");
 
   if (!slug) {
     throw new ApiError("Please give slug", 400);

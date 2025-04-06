@@ -5,9 +5,6 @@ const sendMail = async (mailAddress, subject, body) => {
   const senderMail = process.env.EMAIL_USERNAME;
   const senderPassword = process.env.EMAIL_PASSWORD;
 
-  console.log(senderMail);
-  console.log(senderPassword);
-
   const mailOptions = {
     from: senderMail,
     to: mailAddress,
@@ -16,7 +13,6 @@ const sendMail = async (mailAddress, subject, body) => {
     html: body,
   };
 
-  console.log("I am in mail service");
 
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
